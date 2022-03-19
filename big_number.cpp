@@ -1,8 +1,12 @@
-#include "bignumber.h"
+#include "big_number.h"
 
+BigNumber::BigNumber() : _sign(0L), _bits(std::vector<unsigned long> ()) {
+}
 
-BigNumber::BigNumber(signed char value) : _sign((long) value) {
-    _bits = std::vector<unsigned long> ();
+BigNumber::BigNumber(signed char value) : _sign((long) value), _bits(std::vector<unsigned long> ()) {
+}
+
+BigNumber::BigNumber(long sign, std::vector<unsigned long> bits) : _sign(sign), _bits(bits){
 }
 
 BigNumber::BigNumber(unsigned char value) : _sign((long) value) {
@@ -40,7 +44,7 @@ BigNumber::BigNumber(unsigned long value){
     }
 }
 
-BigNumber::BigNumber(long long value) {
+BigNumber::BigNumber(signed long long value) {
     if (value >= (long long) INT_MIN && value <= (long long) INT_MAX) {
         _sign = (long) value;
         _bits = std::vector<unsigned long> ();
@@ -80,66 +84,396 @@ BigNumber operator+(const BigNumber &num1, const BigNumber &num2) {
 
     std::vector<unsigned long> bits1 = num1.GetBits();
     std::vector<unsigned long> bits2 = num2.GetBits();
-    std::cout << "sign1 = " << sign1 << std::endl;
-    std::cout << "sign2 = " << sign2 << std::endl;
-    if ((sign1 == -1 || sign1 == 1) && (sign2 == -1 || sign2 == 1)) {
-        long long i = 0;
-
-        long sign;
-        std::vector<unsigned long> bits;
-
-        long long remainder = 0;
-        unsigned long bit = 0;
-        while (i < bits1.size() && i < bits2.size()) {
-            long long resault = (long long) (sign1 * bits1[i]) + (long long) (sign2 * bits2[i]);
-
-            if (resault < 0LL) {
-                sign = -1;
-                resault = -resault;
-            } else {
-                sign = 1;
-            }
-
-            bit = (unsigned long) ((resault + remainder) & 0xffffffff);
-            remainder = (unsigned long) ((resault + remainder) >> 32);
-            bits.push_back(bit);
-            i++;
-        }
-
-        while (i < bits1.size()) {
-            bits.push_back(bits1[i]);
-            i++;
-        }
-
-        while (i < bits2.size()) {
-            bits.push_back(bits2[i]);
-            i++;
+    
+    if (bits1.size() == 0) {
+        if (sign1 < 0L) {
+            bits1.push_back((unsigned long) sign1);
+            sign1 = -1;
+        } else {
+            bits1.push_back((unsigned long) sign1);
+            sign1 = 1;
         }
     }
 
-    return BigNumber(100);
+    if (bits2.size() == 0) {
+        if (sign2 < 0L) {
+            bits2.push_back((unsigned long) sign2);
+            sign2 = -1;
+        } else {
+            bits2.push_back((unsigned long) sign2);
+            sign2 = 1;
+        }
+    }
+    
+    if ((sign1 == -1) && (sign2 == -1)) {
+        return BigNumber(-1, (BigNumber(1, bits1) + BigNumber(1, bits2)).GetBits());
+    }
+
+    if ((sign1 == -1) && (sign2 == 1)) {
+        return BigNumber(1, bits2) - BigNumber(1, bits1);
+    }
+
+    if ((sign1 == 1) && (sign2 == -1)) {
+        return BigNumber(1, bits1) - BigNumber(1, bits2);
+    }
+
+
+    std::vector<unsigned long> bits;
+
+    long long i = 0;
+
+    long long remainder = 0;
+    unsigned long bit = 0;
+    while ((i < bits1.size()) && (i < bits2.size())) {
+        long long resault = (long long) (bits1[i]) + (long long) (bits2[i]) + remainder;
+
+        bit = (unsigned long) (resault & 0xffffffff);
+        remainder = (long long) (resault >> 32);
+        bits.push_back(bit);
+        i++;
+    }
+
+    while (i < bits1.size()) {
+        long long resault = (long long) (bits1[i]) + remainder;
+
+        bit = (unsigned long) (resault & 0xffffffff);
+        remainder = (long long) (resault >> 32);
+        bits.push_back(bits1[i]);
+        i++;
+    }
+
+    while (i < bits2.size()) {
+        long long resault = (long long) (bits2[i]) + remainder;
+
+        bit = (unsigned long) (resault & 0xffffffff);
+        remainder = (long long) (resault >> 32);
+        bits.push_back(bits2[i]);
+        i++;
+    }
+
+    if (remainder != 0) {
+        bits.push_back((unsigned long) remainder);
+    }
+
+    return BigNumber(1, bits);
 }
 
+
+BigNumber operator-(const BigNumber &num1, const BigNumber &num2) {
+    long sign1 = num1.GetSign();
+    long sign2 = num2.GetSign();
+
+    std::vector<unsigned long> bits1 = num1.GetBits();
+    std::vector<unsigned long> bits2 = num2.GetBits();
+    
+    if (bits1.size() == 0) {
+        if (sign1 < 0L) {
+            bits1.push_back((unsigned long) sign1);
+            sign1 = -1;
+        } else {
+            bits1.push_back((unsigned long) sign1);
+            sign1 = 1;
+        }
+    }
+
+    if (bits2.size() == 0) {
+        if (sign2 < 0L) {
+            bits2.push_back((unsigned long) sign2);
+            sign2 = -1;
+        } else {
+            bits2.push_back((unsigned long) sign2);
+            sign2 = 1;
+        }
+    }
+
+    if ((sign1 == -1) && (sign2 == 1)) {
+        return BigNumber(-1, (BigNumber(1, bits2) + BigNumber(1, bits1)).GetBits());
+    }
+
+    if ((sign1 == 1) && (sign2 == -1)) {
+        return BigNumber(1, bits1) + BigNumber(1, bits2);
+    }
+
+    if ((sign1 == -1) && (sign2 == -1)) {
+        return BigNumber(1, bits2) - BigNumber(1, bits1);
+    }
+
+    if (num1 < num2) {
+        return BigNumber(-1, (num2 - num1).GetBits());
+    }
+
+    long long i = 0;
+
+    long long remainder = 0;
+    unsigned long bit = 0;
+    long long resault = 0;
+
+    std::vector<unsigned long> bits;
+
+    while (i < bits2.size()) {
+        if (bits1[i] >= bits2[i] + remainder) {
+            resault = (long long) (bits1[i]) - (long long) (bits2[i]) - remainder;
+            remainder = 0;
+        } else {
+            resault = ((long long) (UINT_MAX) + 1) + (long long) (bits1[i]) - (long long) (bits2[i]) - remainder;
+            remainder = 1;
+        }
+
+        bit = (unsigned long) (resault & 0xffffffff);
+        bits.push_back(bit);
+        i++;
+    }
+
+    while(i < bits1.size()) {
+        if (bits1[i] >= remainder) {
+            resault = (long long) (bits1[i]) - remainder;
+            remainder = 0;
+        } else {
+            resault = ((long long) (UINT_MAX) + 1) + (long long) (bits1[i]) - remainder;
+            remainder = 1;
+        }
+
+        bit = (unsigned long) (resault & 0xffffffff);
+        bits.push_back(bit);
+        i++;
+    }
+
+    return BigNumber(1, bits);
+}
+
+BigNumber operator*(const BigNumber& num, const long& val) {
+        long sign = num.GetSign();
+        std::vector<unsigned long> bits = num.GetBits();
+
+        if (bits.size() == 0) {
+            return BigNumber((long long) (sign) * (long long) (val));
+        }
+
+        unsigned long value = 0UL;
+        if (val < 0L) {
+            sign = sign * (-1);
+            value = (unsigned long) (-(long long)(val));
+        } else {
+            value = (unsigned long) (val);
+        }
+
+        return BigNumber(sign, bits) * value;
+}
+
+BigNumber operator*(const long& val, const BigNumber& num) {
+    return num * val;
+}
+
+BigNumber operator*(const BigNumber& num, const unsigned long& val) {
+        long sign = num.GetSign();
+        std::vector<unsigned long> bits = num.GetBits();
+
+        if (bits.size() == 0) {
+            return BigNumber((long long) (sign) * (long long) (val));
+        }
+
+        long long remainder = 0LL;
+        long long resault = 0LL;
+
+        for (int i = 0; i < bits.size(); i++) {
+            resault = (long long) (bits[i] * val) + remainder;
+            bits[i] = (unsigned long) (resault & 0xffffffff);
+
+            remainder = resault >> 32;
+        }
+
+        if (remainder != 0LL) {
+            bits.push_back((unsigned long) remainder);
+        }
+
+        return BigNumber(sign, bits);
+}
+
+BigNumber operator*(const unsigned long& val, const BigNumber& num) {
+    return num * val;
+}
+
+
+BigNumber operator*(const BigNumber& num1, const BigNumber& num2) {
+    long sign1 = num1.GetSign();
+    std::vector<unsigned long> bits1 = num1.GetBits();
+    long sign2 = num1.GetSign();
+    std::vector<unsigned long> bits2 = num2.GetBits();
+
+    if (bits1.size() == 0) {
+        return sign1 * num2;
+    } else {
+        if (bits2.size() == 0) {
+            return num1 * sign1;
+        } else {
+            long sign = sign1 * sign2;
+
+            std::vector<BigNumber> tempMult;
+            std::vector<unsigned long> tempZero;
+            for (auto el : bits1) {
+                BigNumber tempBigNumber = el * BigNumber(1L, bits2);
+                std::vector<unsigned long> tempBits = tempBigNumber.GetBits();
+                for (auto el : tempZero) {
+                    auto beg = tempBits.cbegin();
+                    tempBits.insert(beg, el);
+                }
+                tempMult.push_back(BigNumber(1L, tempBits));
+                tempZero.push_back(0UL);
+            }
+            
+            BigNumber tempSum = tempMult[0];
+            for (int i = 1; i < tempMult.size(); i++) {
+                tempSum = tempSum + tempMult[i];
+            }
+
+            return BigNumber(sign, tempSum.GetBits());
+        }
+    }
+}
+
+bool operator>(const BigNumber& num1, const BigNumber& num2) {
+    long sign1 = num1.GetSign();
+    long sign2 = num2.GetSign();
+
+    std::vector<unsigned long> bits1 = num1.GetBits();
+    std::vector<unsigned long> bits2 = num2.GetBits();
+    
+    if (bits1.size() == 0) {
+        if (sign1 < 0L) {
+            bits1.push_back((unsigned long) sign1);
+            sign1 = -1;
+        } else {
+            bits1.push_back((unsigned long) sign1);
+            sign1 = 1;
+        }
+    }
+
+    if (bits2.size() == 0) {
+        if (sign2 < 0L) {
+            bits2.push_back((unsigned long) sign2);
+            sign2 = -1;
+        } else {
+            bits2.push_back((unsigned long) sign2);
+            sign2 = 1;
+        }
+    }
+
+    if ((sign1 == -1) && (sign2 == 1)) {
+        return false;
+    }
+
+    if ((sign1 == 1) && (sign2 == -1)) {
+        return true;
+    }
+
+    if (bits1.size() > bits2.size()) {
+        return sign1 == 1;
+    }
+
+    if (bits1.size() < bits2.size()) {
+        return sign1 == -1;
+    }
+
+    long long i = bits1.size() - 1;
+
+    while(i >= 0) {
+        if (bits1[i] > bits2[i]) {
+            return sign1 == 1;
+        }
+
+        if (bits1[i] < bits2[i]) {
+            return sign1 == -1;
+        }
+
+        i--;
+    }
+
+    return false;
+}
+
+bool operator<(const BigNumber& num1, const BigNumber& num2) {
+    return num2 > num1;
+}
+
+bool operator<=(const BigNumber& num1, const BigNumber& num2) {
+    return !(num1 > num2);
+}
+
+bool operator>=(const BigNumber& num1, const BigNumber& num2) {
+    return !(num2 > num1);
+}
 
 BigNumber::~BigNumber() {
 }
 
-std::ostream& operator << (std::ostream &out, const BigNumber &num) {
-    if (num._sign == -1L) {
-        out << "-";
+std::ostream& operator << (std::ostream& out, const BigNumber& num) {
+    if (num._bits.size() == 0) {
+        out << num._sign;
     } else {
-        if (num._sign == 1L) {
-            for (int i = 0; i < num._bits.size(); i++) {
-                out << num._bits[i];
-            }
-        } else {
-            out << num._sign;
+        if (num._sign == -1L) {
+            out << "-";
         }
+
+        std::string ans = str::itoa(num._bits[0]);
+        std::string base = str::itoa((unsigned long long)(UINT_MAX) + 1);
+        for (int i = 1; i < num._bits.size(); i++) {
+            ans = str::sum(ans, str::mult(str::itoa(num._bits[i]),base));
+            base = str::mult(base, str::itoa((unsigned long long) (UINT_MAX) + 1));
+        }
+        out << ans;
     }
 
     return out;
 }
 
-BigNumber::Print() {
+std::istream& operator >> (std::istream& in, BigNumber& num) {
+    using namespace str;
+
+    std::string number;
+
+    in >> number;
+
+    long sign = 1L;
+    if (number[0] == '-') {
+        sign *= (-1);
+        number = number.substr(1);
+    }
+
+    std::string base = str::itoa((unsigned long) (UINT_MAX) + 1);
+
+    if (number < base) {
+        num._sign = sign * (unsigned long) (atoi(number.c_str()));
+    } else {
+        num._sign = sign;
+        std::vector<unsigned long> bits = {};
+
+        std::pair<std::string, std::string> temp = division(number, base);
+        std::string remainder = temp.second;
+        number = temp.first;
+        std::cout << "remainder = " << remainder << std::endl;
+        std::cout << "number = " << number << std::endl;
+        bits.push_back(atoi(remainder));
+        std::cout << "bits[0] = " << bits[0] << std::endl;
+        while(number >= base) {
+            std::cout << "say hyai" << std::endl;
+            temp = division(number, base);
+            remainder = temp.second;
+            number = temp.first;
+            bits.push_back(atoi(remainder));
+            std::cout << "remainder = " << remainder << std::endl;
+            std::cout << "number = " << number << std::endl;
+        }
+
+        if (number != "0") {
+            bits.push_back(atoi(number));
+        }
+
+        for (auto el : bits) {
+            std::cout << el << std::endl;
+        }
+
+        num._bits = bits;
+    }
     
+    return in;
 }

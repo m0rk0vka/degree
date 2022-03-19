@@ -1,23 +1,20 @@
-a = 9223372036854780 // 4
 b = 9223372036854780 // 2
-print(a)
+print(b & 0xffffffff)
+print(b >> 32)
 print(b)
-print("ans = ", a + b)
+c = 2**32
+print(c & 0xffffffff)
+print(c >> 32)
+print(c)
+d = b * c
+print(d & 0xffffffff)
+d = d >> 32
+print(d & 0xffffffff)
+print(d >> 32)
+print(b * c)
 
-a = -(9223372036854780 // 4)
-b = -(9223372036854780 // 2)
-print(a)
-print(b)
-print("ans = ", a + b)
-
-a = -(9223372036854780 // 4)
-b = 9223372036854780 // 2
-print((a + b) & 0xffffffff)
-print((a + b) >> 32)
-print("ans = ", a + b)
-
-a = 9223372036854780 // 4
-b = -(9223372036854780 // 2)
-print((a + b) & 0xffffffff)
-print((a + b) >> 32)
-print("ans = ", a + b)
+a = 2**64 - 3*2**35
+print(a);
+print(a & 0xffffffff)
+print((a >> 32) & 0xffffffff)
+print(a >> 64)

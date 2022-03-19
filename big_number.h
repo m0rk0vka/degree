@@ -9,23 +9,25 @@
 #include <limits>
 #include <vector>
 #include <bitset>
+#include "str.h"
 
 class BigNumber {
 private:
     long _sign;
     std::vector<unsigned long> _bits;
 public:
-    BigNumber(signed char value = 0);
-    BigNumber(unsigned char value = 0);
-    BigNumber(signed short value = 0);
-    BigNumber(unsigned short value = 0);
-    BigNumber(signed int value = 0);
-    BigNumber(unsigned int value = 0);
-    BigNumber(signed long value = 0L);
-    BigNumber(unsigned long value = 0UL);
-    BigNumber(signed long long value = 0LL);
-    BigNumber(unsigned long long value = 0ULL);
-    BigNumber(std::string str);
+    BigNumber();
+    BigNumber(signed char value);
+    BigNumber(unsigned char value);
+    BigNumber(signed short value);
+    BigNumber(unsigned short value);
+    BigNumber(signed int value);
+    BigNumber(unsigned int value);
+    BigNumber(signed long value);
+    BigNumber(unsigned long value);
+    BigNumber(signed long long value);
+    BigNumber(unsigned long long value);
+    BigNumber(long sign, std::vector<unsigned long> bits);
 
     long GetSign() const {
         return _sign;
@@ -35,19 +37,22 @@ public:
         return _bits;
     }
 
-    void Print() const {
-        constexpr len = _bits.size();
-        std::bitset<len * 32> answer = 0;
-        for (auto i = 0; i < _bits.size(); i++) {
-            answer = (answer & ((i + 1) * 32)) << 32;
-            answer |= _bits[i];
-        } 
-    }
-
-    friend std::ostream& operator<<(std::ostream& out, const BigNumber &num);
-    friend std::ostream& operator>>(std::ostream& out, const BigNumber &num);
+    friend std::ostream& operator<<(std::ostream&, const BigNumber&);
+    friend std::istream& operator>>(std::istream&, BigNumber&);
     ~BigNumber();
 };
 
-BigNumber operator+(const BigNumber &num1, const BigNumber &num2);
+BigNumber operator+(const BigNumber&, const BigNumber&);
+BigNumber operator-(const BigNumber&, const BigNumber&);
+BigNumber operator*(const BigNumber&, const long&);
+BigNumber operator*(const long&, const BigNumber&);
+BigNumber operator*(const BigNumber&, const unsigned long&);
+BigNumber operator*(const unsigned long&, const BigNumber&);
+BigNumber operator*(const BigNumber&, const BigNumber&);
+BigNumber operator/(const BigNumber&, const BigNumber&);
+BigNumber operator/(const BigNumber&, const unsigned long&);
+bool operator>(const BigNumber&, const BigNumber&);
+bool operator<(const BigNumber&, const BigNumber&);
+bool operator<=(const BigNumber&, const BigNumber&);
+bool operator>=(const BigNumber&, const BigNumber&);
 #endif
