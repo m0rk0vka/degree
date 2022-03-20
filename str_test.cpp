@@ -4,7 +4,7 @@ using namespace str;
 
 int main() {
     std::string pow1 = "1";
-    std::string pow2 = itos((long long) UINT_MAX + 1);
+    std::string pow2 = itoa((long long) UINT_MAX + 1);
     std::string x0 = "3917010175";
     std::string x1 = "536870";
     std::cout << "pow2 = " << pow2 << std::endl;

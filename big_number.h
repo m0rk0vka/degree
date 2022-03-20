@@ -8,7 +8,7 @@
 #include <typeinfo>
 #include <limits>
 #include <vector>
-#include <bitset>
+#include <typeinfo>
 #include "str.h"
 
 class BigNumber {
@@ -49,10 +49,12 @@ BigNumber operator*(const long&, const BigNumber&);
 BigNumber operator*(const BigNumber&, const unsigned long&);
 BigNumber operator*(const unsigned long&, const BigNumber&);
 BigNumber operator*(const BigNumber&, const BigNumber&);
-BigNumber operator/(const BigNumber&, const BigNumber&);
-BigNumber operator/(const BigNumber&, const unsigned long&);
+std::pair<BigNumber, BigNumber> operator/(const BigNumber&, const BigNumber&);
+std::pair<BigNumber, BigNumber> operator/(const BigNumber&, const unsigned long&);
 bool operator>(const BigNumber&, const BigNumber&);
 bool operator<(const BigNumber&, const BigNumber&);
 bool operator<=(const BigNumber&, const BigNumber&);
 bool operator>=(const BigNumber&, const BigNumber&);
+bool operator==(const BigNumber&, const BigNumber&);
+bool operator!=(const BigNumber&, const BigNumber&);
 #endif

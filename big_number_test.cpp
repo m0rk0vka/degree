@@ -43,7 +43,8 @@ int main()
     std::cout << "---------------------------" << std::endl;
     BigNumber num1;
     std::cin >> num1;
+    unsigned long val = 101231;
     std::cout << "---------------------------" << std::endl;
-    std::cout << num1 << std::endl;
+    std::cout << (num1 / val).first << " " << (num1 / val).second << std::endl;
     //std::cout << (num * ((unsigned long) 999)) << std::endl;
 }

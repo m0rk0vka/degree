@@ -155,6 +155,10 @@ BigNumber operator+(const BigNumber &num1, const BigNumber &num2) {
         bits.push_back((unsigned long) remainder);
     }
 
+    while(bits[bits.size() - 1] == 0UL) {
+        bits.erase(bits.end() - 1);
+    }
+    
     return BigNumber(1, bits);
 }
 
@@ -238,6 +242,10 @@ BigNumber operator-(const BigNumber &num1, const BigNumber &num2) {
         i++;
     }
 
+    while(bits[bits.size() - 1] == 0UL) {
+        bits.erase(bits.end() - 1);
+    }
+
     return BigNumber(1, bits);
 }
 
@@ -293,7 +301,6 @@ BigNumber operator*(const unsigned long& val, const BigNumber& num) {
     return num * val;
 }
 
-
 BigNumber operator*(const BigNumber& num1, const BigNumber& num2) {
     long sign1 = num1.GetSign();
     std::vector<unsigned long> bits1 = num1.GetBits();
@@ -330,6 +337,91 @@ BigNumber operator*(const BigNumber& num1, const BigNumber& num2) {
         }
     }
 }
+
+std::pair<BigNumber, BigNumber> operator/(const BigNumber& num, const unsigned long& val) {
+    assert(val != 0);
+
+    long sign = num.GetSign();
+    std::vector<unsigned long> bits = num.GetBits();
+
+    if (bits.size() == 0) {
+        return std::pair<BigNumber, BigNumber> (BigNumber((unsigned long) (sign) / val), (unsigned long) (sign) % val);
+    }
+    if (val == 1UL) {
+        return std::pair<BigNumber, BigNumber> (num, BigNumber(0));
+    }
+
+    if (val == 2UL) {
+        if (bits.size() == 0) {
+            return std::pair<BigNumber, BigNumber> (BigNumber(sign / 2), BigNumber(sign % 2));
+        }
+
+        long long i = bits.size() - 1;
+
+        unsigned long base_2_in_31 = ((unsigned long) (UINT_MAX) + 1) / 2;
+        
+        unsigned long remainder = 0UL;
+
+        while (i >= 0) {
+            if (bits[i] % 2 == 0) {
+                bits[i] /= 2;
+                bits[i] += remainder;
+                remainder = 0UL;
+            } else {
+                bits[i] -= 1;
+                bits[i] /= 2;
+                bits[i] += remainder;
+                remainder = base_2_in_31;
+            }
+            i--;
+        }
+        
+        return std::pair<BigNumber, BigNumber> (BigNumber(sign, bits), BigNumber(remainder != 0UL));
+    }
+
+    BigNumber left;
+    BigNumber right = num;
+
+    while (left + 1 != right) {
+        BigNumber middle = ((left + right) / 2).first;
+
+        if (middle * val < num) {
+            left = middle;
+        } else {
+            if (middle * val > num) {
+                right = middle;
+            } else {
+                return std::pair<BigNumber, BigNumber> (middle, BigNumber(0));
+            }
+        }
+    }
+    
+    return std::pair<BigNumber, BigNumber> (left, num - left * val);
+};
+
+/*std::pair<BigNumber, BigNumber> operator/(const BigNumber& num1, const BigNumber& num2) {
+    assert(num1 >= num2);
+
+    long sign1 = num1.GetSign();
+    std::vector<unsigned long> bits1 = num1.GetBits();
+    long sign2 = num2.GetSign();
+    std::vector<unsigned long> bits2 = num2.GetBits();
+    if (num1 == num2) {
+        return std::pair<BigNumber, BigNumber> (BigNumber(1), BigNumber(0));
+    }
+
+    if (bits2.size() == 0) {
+        if (sign2 < 0) {
+            sign1 *= -1;
+        }
+
+        std::pair<BigNumber, BigNumber> temp = num1 / ((unsigned long)(sign2));
+
+        return std::pair<BigNumber, BigNumber> (BigNumber(sign1, temp.first), temp.second);
+    }
+
+    // nothing to do(don't);
+};*/
 
 bool operator>(const BigNumber& num1, const BigNumber& num2) {
     long sign1 = num1.GetSign();
@@ -403,6 +495,41 @@ bool operator>=(const BigNumber& num1, const BigNumber& num2) {
     return !(num2 > num1);
 }
 
+bool operator==(const BigNumber& num1, const BigNumber& num2) {
+    long sign1 = num1.GetSign();
+    std::vector<unsigned long> bits1 = num1.GetBits();
+    long sign2 = num2.GetSign();
+    std::vector<unsigned long> bits2 = num2.GetBits();
+
+    if (bits1.size() != bits2.size()) {
+        return false;
+    }
+
+    if (bits1.size() == 0) {
+        return sign1 == sign2;
+    }
+
+    if (sign1 != sign2) {
+        return false;
+    }
+
+    unsigned long i = 0UL;
+
+    while (i != bits1.size()) {
+        if (bits1[i] != bits2[i]) {
+            return false;
+        }
+
+        i++;
+    }
+
+    return true;
+}
+
+bool operator!=(const BigNumber& num1, const BigNumber& num2) {
+    return !(num1 == num2);
+}
+
 BigNumber::~BigNumber() {
 }
 
@@ -450,26 +577,16 @@ std::istream& operator >> (std::istream& in, BigNumber& num) {
         std::pair<std::string, std::string> temp = division(number, base);
         std::string remainder = temp.second;
         number = temp.first;
-        std::cout << "remainder = " << remainder << std::endl;
-        std::cout << "number = " << number << std::endl;
         bits.push_back(atoi(remainder));
-        std::cout << "bits[0] = " << bits[0] << std::endl;
         while(number >= base) {
-            std::cout << "say hyai" << std::endl;
             temp = division(number, base);
             remainder = temp.second;
             number = temp.first;
             bits.push_back(atoi(remainder));
-            std::cout << "remainder = " << remainder << std::endl;
-            std::cout << "number = " << number << std::endl;
         }
 
         if (number != "0") {
             bits.push_back(atoi(number));
-        }
-
-        for (auto el : bits) {
-            std::cout << el << std::endl;
         }
 
         num._bits = bits;
@@ -477,3 +594,5 @@ std::istream& operator >> (std::istream& in, BigNumber& num) {
     
     return in;
 }
+
+
