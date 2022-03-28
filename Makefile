@@ -15,8 +15,8 @@ big_number.o: big_number.cpp big_number.h
 str.o: str.cpp str.h
 	$(CC) $(CFLAGS) -c str.cpp
 
-fraction_test: fraction.o big_number.o fraction_test.cpp
-	$(CC) $(CFLAGS) fraction.o big_number.o fraction_test.cpp -o fraction_test
+fraction_test: fraction.o big_number.o str.o fraction_test.cpp
+	$(CC) $(CFLAGS) fraction.o big_number.o str.o fraction_test.cpp -o fraction_test
 
 big_number_test: big_number.o str.o big_number_test.cpp
 	$(CC) $(CFLAGS) big_number.o str.o big_number_test.cpp -o big_number_test

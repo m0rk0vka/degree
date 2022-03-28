@@ -5,7 +5,7 @@ BigNumber frac::gcd(BigNumber a, BigNumber b) {
 }
 
 BigNumber frac::lcm(BigNumber a, BigNumber b) {
-    return a * b / frac::gcd(a, b);
+    return (a * b / frac::gcd(a, b)).first;
 }
 
 int frac::sgn(BigNumber val) {
@@ -117,8 +117,8 @@ bool operator<=(const Fraction &f1, const Fraction &f2) {
     BigNumber d2 = f2.GetDenominator();
 
     BigNumber denominator = frac::lcm(d1, d2);
-    BigNumber numerator1 = n1 * (denominator / d1);
-    BigNumber numerator2 = n2 * (denominator / d2);
+    BigNumber numerator1 = n1 * (denominator / d1).first;
+    BigNumber numerator2 = n2 * (denominator / d2).first;
     return (numerator1 <= numerator2);
 }
 
@@ -130,8 +130,8 @@ bool operator>=(const Fraction &f1, const Fraction &f2) {
     BigNumber d2 = f2.GetDenominator();
 
     BigNumber denominator = frac::lcm(d1, d2);
-    BigNumber numerator1 = n1 * (denominator / d1);
-    BigNumber numerator2 = n2 * (denominator / d2);
+    BigNumber numerator1 = n1 * (denominator / d1).first;
+    BigNumber numerator2 = n2 * (denominator / d2).first;
     return (numerator1 >= numerator2);
 }
 
@@ -143,8 +143,8 @@ bool operator>(const Fraction &f1, const Fraction &f2) {
     BigNumber d2 = f2.GetDenominator();
 
     BigNumber denominator = frac::lcm(d1, d2);
-    BigNumber numerator1 = n1 * (denominator / d1);
-    BigNumber numerator2 = n2 * (denominator / d2);
+    BigNumber numerator1 = n1 * (denominator / d1).first;
+    BigNumber numerator2 = n2 * (denominator / d2).first;
     return (numerator1 > numerator2);
 }
 
@@ -156,8 +156,8 @@ bool operator<(const Fraction &f1, const Fraction &f2) {
     BigNumber d2 = f2.GetDenominator();
 
     BigNumber denominator = frac::lcm(d1, d2);
-    BigNumber numerator1 = n1 * (denominator / d1);
-    BigNumber numerator2 = n2 * (denominator / d2);
+    BigNumber numerator1 = n1 * (denominator / d1).first;
+    BigNumber numerator2 = n2 * (denominator / d2).first;
     return (numerator1 < numerator2);
 }
 
@@ -197,7 +197,7 @@ Fraction operator+(const Fraction &f1, const Fraction &f2) {
     BigNumber d2 = f2.GetDenominator();
 
     BigNumber denominator = frac::lcm(d1, d2);
-    BigNumber numerator = n1 * (denominator / d1) + n2 * (denominator / d2);
+    BigNumber numerator = n1 * (denominator / d1).first + n2 * (denominator / d2).first;
 
     return Fraction(numerator, denominator);
 
@@ -272,7 +272,7 @@ Fraction operator*(const Fraction &f, BigNumber value) {
 Fraction Pow(const Fraction &f, BigNumber value) {
     Fraction temp = Fraction(f.GetNumerator(), f.GetDenominator());
     Fraction ans = temp;
-    for (BigNumber i = 0; i < value - 1; i++) {
+    for (BigNumber i = 0; i < value - 1; i += 1) {
         ans *= temp;
     }
 

@@ -41,10 +41,19 @@ int main()
     std::cout << (num1 - num2).Print() << std::endl;
     std::cout << (num2 - num1).Print() << std::endl;*/
     std::cout << "---------------------------" << std::endl;
-    BigNumber num1;
-    std::cin >> num1;
-    unsigned long val = 101231;
+    BigNumber num1, num2;
+    unsigned long value;
+    std::cin >> num1 >> num2;
     std::cout << "---------------------------" << std::endl;
-    std::cout << (num1 / val).first << " " << (num1 / val).second << std::endl;
+    //std::cout << num1 << " " << num2 << std::endl;
+    //std::cout << (num1 / num2).first << " " << (num1 / num2).second << std::endl;
+    std::cout << std::endl;
+    std::cout << "---------------------------" << std::endl;
+    std::cout << num1 % num2 << std::endl;
+    std::cout << num2 * num1 << std::endl;
+    //std::cout << (num1 / num2).first << " " << (num1 / num2).second << std::endl;
+    //std::cout << 3922646013 * num1 << std::endl;
+    //std::cout << num2 * num1 << std::endl;
+    //std::cin >> num1 >> num2;
     //std::cout << (num * ((unsigned long) 999)) << std::endl;
 }

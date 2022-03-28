@@ -37,6 +37,14 @@ public:
         return _bits;
     }
 
+    BigNumber operator-();
+    BigNumber operator+();
+
+    BigNumber& operator += (const BigNumber&);
+    BigNumber& operator -= (const BigNumber&);
+    BigNumber& operator /= (const BigNumber&);
+    BigNumber& operator *= (const BigNumber&);
+
     friend std::ostream& operator<<(std::ostream&, const BigNumber&);
     friend std::istream& operator>>(std::istream&, BigNumber&);
     ~BigNumber();
@@ -50,6 +58,7 @@ BigNumber operator*(const BigNumber&, const unsigned long&);
 BigNumber operator*(const unsigned long&, const BigNumber&);
 BigNumber operator*(const BigNumber&, const BigNumber&);
 std::pair<BigNumber, BigNumber> operator/(const BigNumber&, const BigNumber&);
+BigNumber operator%(const BigNumber&, const BigNumber&);
 std::pair<BigNumber, BigNumber> operator/(const BigNumber&, const unsigned long&);
 bool operator>(const BigNumber&, const BigNumber&);
 bool operator<(const BigNumber&, const BigNumber&);
