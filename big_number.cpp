@@ -361,7 +361,7 @@ BigNumber operator*(const BigNumber& num1, const BigNumber& num2) {
 
 std::pair<BigNumber, BigNumber> operator/(const BigNumber& num, const unsigned long& val) {
     assert(val != 0);
-
+    
     long sign = num.GetSign();
     std::vector<unsigned long> bits = num.GetBits();
 
@@ -421,18 +421,24 @@ std::pair<BigNumber, BigNumber> operator/(const BigNumber& num, const unsigned l
 };
 
 std::pair<BigNumber, BigNumber> operator/(const BigNumber& num1, const BigNumber& num2) {
-    //return std::pair<BigNumber, BigNumber> (0, num1);
-    assert(num1 >= num2);
+    if (num1 < num2) {
+        return std::pair<BigNumber, BigNumber> (BigNumber(0), num1);
+    }
+
+    if (num1 == num2) {
+        return std::pair<BigNumber, BigNumber> (BigNumber(1), BigNumber(0));
+    }
 
     long sign1 = num1.GetSign();
     std::vector<unsigned long> bits1 = num1.GetBits();
     long sign2 = num2.GetSign();
     std::vector<unsigned long> bits2 = num2.GetBits();
-    if (num1 == num2) {
-        return std::pair<BigNumber, BigNumber> (BigNumber(1), BigNumber(0));
-    }
 
     if (bits2.size() == 0) {
+        if (bits1.size() == 0) {
+            return std::pair<BigNumber, BigNumber> (BigNumber(sign1 / sign2), BigNumber(sign1 % sign2));
+        }
+
         if (sign2 < 0) {
             sign1 *= -1;
         }

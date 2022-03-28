@@ -50,7 +50,10 @@ int main()
     std::cout << std::endl;
     std::cout << "---------------------------" << std::endl;
     std::cout << num1 % num2 << std::endl;
-    std::cout << num2 * num1 << std::endl;
+    std::cout << num1 + num2 << std::endl;
+    std::cout << num1 - num2 << std::endl;
+    std::cout << (num1 / num2).first << std::endl;
+    std::cout << num1 * num2 << std::endl;
     //std::cout << (num1 / num2).first << " " << (num1 / num2).second << std::endl;
     //std::cout << 3922646013 * num1 << std::endl;
     //std::cout << num2 * num1 << std::endl;

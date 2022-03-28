@@ -191,11 +191,12 @@ std::istream& operator>> (std::istream &in, Fraction &f)
 
 
 Fraction operator+(const Fraction &f1, const Fraction &f2) {
+    std::cout << "hello" << std::endl;
     BigNumber n1 = f1.GetNumerator();
     BigNumber n2 = f2.GetNumerator();
     BigNumber d1 = f1.GetDenominator();
     BigNumber d2 = f2.GetDenominator();
-
+    std::cout << "lcm there" << std::endl;
     BigNumber denominator = frac::lcm(d1, d2);
     BigNumber numerator = n1 * (denominator / d1).first + n2 * (denominator / d2).first;
 
