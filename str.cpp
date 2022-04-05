@@ -290,6 +290,10 @@ std::pair<std::string, std::string> str::division(const std::string& divisible, 
     std::string left = "1";
     std::string right = divisible;
 
+    if (divisible < divider) {
+        return std::pair<std::string, std::string> ("0", divisible);
+    }
+    
     while (sum(left, "1") != right) {
         std::string middle = division(sum(left, right),'2').first;
 

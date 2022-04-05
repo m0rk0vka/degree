@@ -6,7 +6,32 @@ BigNumber::BigNumber() : _sign(0L), _bits(std::vector<unsigned long> ()) {
 BigNumber::BigNumber(signed char value) : _sign((long) value), _bits(std::vector<unsigned long> ()) {
 }
 
-BigNumber::BigNumber(long sign, std::vector<unsigned long> bits) : _sign(sign), _bits(bits){
+BigNumber::BigNumber(long sign, std::vector<unsigned long> bits) {
+    if ((bits.size() == 1) && (bits[0] <= (unsigned long) (INT_MAX))) {
+        _sign = sign * bits[0];
+        _bits.clear();
+        _bits = std::vector<unsigned long> ();
+    } else {
+        if (bits.size() > 0) {
+            while(bits[bits.size() - 1] == 0UL) {
+                bits.erase(bits.end() - 1);
+                if (bits.size() == 0) {
+                    break;
+                }
+            }
+
+            if (bits.size() == 0) {
+                _sign = 0;
+                _bits = bits;
+            } else {
+                _sign = sign;
+                _bits = bits;
+            }
+        } else {
+            _sign = sign;
+            _bits = std::vector<unsigned long> ();
+        }
+    }
 }
 
 BigNumber::BigNumber(unsigned char value) : _sign((long) value) {
@@ -61,7 +86,10 @@ BigNumber::BigNumber(signed long long value) {
 
         _bits = std::vector<unsigned long> ();
         _bits.push_back((unsigned long) (number & 0xffffffff));
-        _bits.push_back((unsigned long) (number >> 32));
+
+        if ((unsigned long) (number >> 32) != 0UL) {
+            _bits.push_back((unsigned long) (number >> 32));
+        }
     }
 }
 
@@ -74,7 +102,9 @@ BigNumber::BigNumber(unsigned long long value) {
         _bits = std::vector<unsigned long> ();
         unsigned long long number = value;
         _bits.push_back((unsigned long) (number & 0xffffffff));
-        _bits.push_back((unsigned long) (number >> 32));
+        if ((unsigned long) (number >> 32) != 0UL) {
+            _bits.push_back((unsigned long) (number >> 32));
+        }
     }
 }
 
@@ -84,29 +114,9 @@ BigNumber operator+(const BigNumber &num1, const BigNumber &num2) {
 
     std::vector<unsigned long> bits1 = num1.GetBits();
     std::vector<unsigned long> bits2 = num2.GetBits();
-    
-    if (bits1.size() == 0) {
-        if (sign1 < 0L) {
-            bits1.push_back((unsigned long) sign1);
-            sign1 = -1;
-        } else {
-            bits1.push_back((unsigned long) sign1);
-            sign1 = 1;
-        }
-    }
 
-    if (bits2.size() == 0) {
-        if (sign2 < 0L) {
-            bits2.push_back((unsigned long) sign2);
-            sign2 = -1;
-        } else {
-            bits2.push_back((unsigned long) sign2);
-            sign2 = 1;
-        }
-    }
-    
     if ((sign1 == -1) && (sign2 == -1)) {
-        return BigNumber(-1, (BigNumber(1, bits1) + BigNumber(1, bits2)).GetBits());
+        return (BigNumber(1, bits1) + BigNumber(1, bits2)) * BigNumber(-1);
     }
 
     if ((sign1 == -1) && (sign2 == 1)) {
@@ -115,6 +125,14 @@ BigNumber operator+(const BigNumber &num1, const BigNumber &num2) {
 
     if ((sign1 == 1) && (sign2 == -1)) {
         return BigNumber(1, bits1) - BigNumber(1, bits2);
+    }
+
+    if (bits1.size() == 0) {
+        bits1.push_back((unsigned long) sign1);
+    }
+
+    if (bits2.size() == 0) {
+        bits2.push_back((unsigned long) sign2);
     }
 
 
@@ -138,7 +156,7 @@ BigNumber operator+(const BigNumber &num1, const BigNumber &num2) {
 
         bit = (unsigned long) (resault & 0xffffffff);
         remainder = (unsigned long long) (resault >> 32);
-        bits.push_back(bits1[i]);
+        bits.push_back(bit);
         i++;
     }
 
@@ -147,7 +165,7 @@ BigNumber operator+(const BigNumber &num1, const BigNumber &num2) {
 
         bit = (unsigned long) (resault & 0xffffffff);
         remainder = (unsigned long long) (resault >> 32);
-        bits.push_back(bits2[i]);
+        bits.push_back(bit);
         i++;
     }
 
@@ -161,7 +179,6 @@ BigNumber operator+(const BigNumber &num1, const BigNumber &num2) {
             return BigNumber(0);
         }
     }
-
     return BigNumber(1, bits);
 }
 
@@ -172,29 +189,9 @@ BigNumber operator-(const BigNumber &num1, const BigNumber &num2) {
 
     std::vector<unsigned long> bits1 = num1.GetBits();
     std::vector<unsigned long> bits2 = num2.GetBits();
-    
-    if (bits1.size() == 0) {
-        if (sign1 < 0L) {
-            bits1.push_back((unsigned long) sign1);
-            sign1 = -1;
-        } else {
-            bits1.push_back((unsigned long) sign1);
-            sign1 = 1;
-        }
-    }
-
-    if (bits2.size() == 0) {
-        if (sign2 < 0L) {
-            bits2.push_back((unsigned long) sign2);
-            sign2 = -1;
-        } else {
-            bits2.push_back((unsigned long) sign2);
-            sign2 = 1;
-        }
-    }
 
     if ((sign1 == -1) && (sign2 == 1)) {
-        return BigNumber(-1, (BigNumber(1, bits2) + BigNumber(1, bits1)).GetBits());
+        return (BigNumber(1, bits2) + BigNumber(1, bits1)) * BigNumber(-1);
     }
 
     if ((sign1 == 1) && (sign2 == -1)) {
@@ -206,7 +203,15 @@ BigNumber operator-(const BigNumber &num1, const BigNumber &num2) {
     }
 
     if (num1 < num2) {
-        return BigNumber(-1, (num2 - num1).GetBits());
+        return (num2 - num1) * BigNumber(-1);
+    }
+
+    if (bits1.size() == 0) {
+        bits1.push_back((unsigned long) sign1);
+    }
+
+    if (bits2.size() == 0) {
+        bits2.push_back((unsigned long) sign2);
     }
 
     unsigned long long i = 0;
@@ -220,10 +225,10 @@ BigNumber operator-(const BigNumber &num1, const BigNumber &num2) {
     while (i < bits2.size()) {
         if (bits1[i] >= bits2[i] + remainder) {
             resault = (unsigned long long) (bits1[i]) - (unsigned long long) (bits2[i]) - remainder;
-            remainder = 0;
+            remainder = 0ULL;
         } else {
             resault = ((unsigned long long) (UINT_MAX) + 1) + (unsigned long long) (bits1[i]) - (long long) (bits2[i]) - remainder;
-            remainder = 1;
+            remainder = 1ULL;
         }
 
         bit = (unsigned long) (resault & 0xffffffff);
@@ -237,7 +242,7 @@ BigNumber operator-(const BigNumber &num1, const BigNumber &num2) {
             remainder = 0;
         } else {
             resault = ((unsigned long long) (UINT_MAX) + 1) + (unsigned long long) (bits1[i]) - remainder;
-            remainder = 1;
+            remainder += 1;
         }
 
         bit = (unsigned long) (resault & 0xffffffff);
@@ -291,12 +296,9 @@ BigNumber operator*(const BigNumber& num, const unsigned long& val) {
 
         for (int i = 0; i < bits.size(); i++) {
             resault = (unsigned long long) (bits[i]) * (unsigned long long) (val) + remainder;
-            //std::cout << "resault = " << resault << std::endl;
+            
             bits[i] = (unsigned long) (resault & 0xffffffff);
-
             remainder = (unsigned long long)(resault >> 32);
-            //std::cout << "remainder = " << remainder << std::endl;
-            //std::cout << "bits[i] = " << bits[i] << std::endl;
         }
 
         if (remainder != 0ULL) {
@@ -341,7 +343,6 @@ BigNumber operator*(const BigNumber& num1, const BigNumber& num2) {
     std::vector<unsigned long> tempZero = {};
     for (auto el : bits1) {
         BigNumber tempBigNumber = el * num2;
-        std::cout << tempBigNumber << std::endl;
         std::vector<unsigned long> tempBits = tempBigNumber.GetBits();
         for (auto elem : tempZero) {
             auto beg = tempBits.cbegin();
@@ -356,7 +357,16 @@ BigNumber operator*(const BigNumber& num1, const BigNumber& num2) {
         tempSum = tempSum + tempMult[i];
     }
 
-    return BigNumber(sign, tempSum.GetBits());
+    std::vector<unsigned long> bits = tempSum.GetBits();
+
+    while(bits[bits.size() - 1] == 0UL) {
+        bits.erase(bits.end() - 1);
+        if (bits.size() == 0) {
+            return BigNumber(0);
+        }
+    }
+
+    return BigNumber(sign, bits);
 }
 
 std::pair<BigNumber, BigNumber> operator/(const BigNumber& num, const unsigned long& val) {
@@ -368,6 +378,7 @@ std::pair<BigNumber, BigNumber> operator/(const BigNumber& num, const unsigned l
     if (bits.size() == 0) {
         return std::pair<BigNumber, BigNumber> (BigNumber((unsigned long) (sign) / val), (unsigned long) (sign) % val);
     }
+
     if (val == 1UL) {
         return std::pair<BigNumber, BigNumber> (num, BigNumber(0));
     }
@@ -397,15 +408,18 @@ std::pair<BigNumber, BigNumber> operator/(const BigNumber& num, const unsigned l
             i--;
         }
         
+        while(bits[bits.size() - 1] == 0UL) {
+            bits.erase(bits.end() - 1);
+        }
+
         return std::pair<BigNumber, BigNumber> (BigNumber(sign, bits), BigNumber(remainder != 0UL));
     }
 
-    BigNumber left;
-    BigNumber right = num;
+    BigNumber left = BigNumber(1);
+    BigNumber right = num + BigNumber(1);
 
     while (left + 1 != right) {
         BigNumber middle = ((left + right) / 2).first;
-
         if (middle * val < num) {
             left = middle;
         } else {
@@ -421,14 +435,6 @@ std::pair<BigNumber, BigNumber> operator/(const BigNumber& num, const unsigned l
 };
 
 std::pair<BigNumber, BigNumber> operator/(const BigNumber& num1, const BigNumber& num2) {
-    if (num1 < num2) {
-        return std::pair<BigNumber, BigNumber> (BigNumber(0), num1);
-    }
-
-    if (num1 == num2) {
-        return std::pair<BigNumber, BigNumber> (BigNumber(1), BigNumber(0));
-    }
-
     long sign1 = num1.GetSign();
     std::vector<unsigned long> bits1 = num1.GetBits();
     long sign2 = num2.GetSign();
@@ -436,6 +442,7 @@ std::pair<BigNumber, BigNumber> operator/(const BigNumber& num1, const BigNumber
 
     if (bits2.size() == 0) {
         if (bits1.size() == 0) {
+            assert(sign2 != 0);
             return std::pair<BigNumber, BigNumber> (BigNumber(sign1 / sign2), BigNumber(sign1 % sign2));
         }
 
@@ -445,45 +452,52 @@ std::pair<BigNumber, BigNumber> operator/(const BigNumber& num1, const BigNumber
 
         std::pair<BigNumber, BigNumber> temp = num1 / ((unsigned long)(sign2));
 
-        return std::pair<BigNumber, BigNumber> (BigNumber(sign1, temp.first.GetBits()), temp.second);
+        return std::pair<BigNumber, BigNumber> (BigNumber(sign1) * temp.first, temp.second);
+    }
+
+    long sign = sign1 * sign2;
+
+    BigNumber temp1, temp2;
+
+    if (sign1 < 0L) {
+        temp1 = num1 * BigNumber(-1);
+    } else {
+        temp1 = num1;
+    }
+
+    if (sign2 < 0L) {
+        temp2 = num2 * BigNumber(-1);
+    } else {
+        temp2 = num2;
+    }
+
+    if (temp1 < temp2) {
+        return std::pair<BigNumber, BigNumber> (BigNumber(0), temp1);
+    }
+
+    if (temp1 == temp2) {
+        return std::pair<BigNumber, BigNumber> (BigNumber(1 * sign), BigNumber(0));   
     }
 
     BigNumber left = BigNumber(1);
-    BigNumber right = num1;
+    BigNumber right = temp1 + BigNumber(1);
 
     while (left + BigNumber(1) != right) {
         BigNumber middle = ((left + right) / 2).first;
-        if (middle * num2 < num1) {
+        if (middle * temp2 < temp1) {
             left = middle;
         } else {
-            if (middle * num2 > num1) {
+            if (middle * temp2 > temp1) {
                 right = middle;
             } else {
-                return std::pair<BigNumber, BigNumber> (middle, BigNumber(0));
+                return std::pair<BigNumber, BigNumber> (BigNumber(sign) * middle, BigNumber(0));
             }
         }
     }
 
     BigNumber ans = left;
-    left = BigNumber(1);
-    right = num2;
-    BigNumber remainder = ((left + right) / 2).first;
 
-    while (ans * num2 + remainder != num1) {
-        if (ans * num2 + remainder < num1) {
-            left = remainder;
-        } else {
-            if (ans * num2 + remainder > num1) {
-                right = remainder;
-            } else {
-                return std::pair<BigNumber, BigNumber> (ans, remainder);
-            }
-        }
-
-        remainder = ((left + right) / 2).first;
-    }
-
-    return std::pair<BigNumber, BigNumber> (ans, remainder);
+    return std::pair<BigNumber, BigNumber> (BigNumber(sign) * ans, temp1 - ans * temp2);
 };
 
 bool operator>(const BigNumber& num1, const BigNumber& num2) {
@@ -664,26 +678,40 @@ std::ostream& operator << (std::ostream& out, const BigNumber& num) {
     return out;
 }
 
-std::istream& operator >> (std::istream& in, BigNumber& num) {
+std::istream& operator>> (std::istream& in, BigNumber& num) {
     using namespace str;
 
-    std::string number;
+    char c;
 
-    in >> number;
+    in.get(c);
+    std::string number = "";
 
     long sign = 1L;
-    if (number[0] == '-') {
+    if (c == '-') {
         sign *= (-1);
-        number = number.substr(1);
+    } else {
+        number += c;
     }
 
-    std::string base = str::itoa((unsigned long) (UINT_MAX) + 1);
+    in.get(c);
+    while (std::isdigit(c)) {
+        number += c;
+        in.get(c);
+    }
 
-    if (number < base) {
+    if (c != ' ' && c != '\n') {
+        in.putback(c);
+    }
+    
+    std::string to_long = str::itoa((unsigned long) (INT_MAX));
+
+    if (number < to_long) {
         num._sign = sign * (unsigned long) (atoi(number.c_str()));
     } else {
         num._sign = sign;
         std::vector<unsigned long> bits = {};
+
+        std::string base = str::itoa((unsigned long) (UINT_MAX) + 1);
 
         std::pair<std::string, std::string> temp = division(number, base);
         std::string remainder = temp.second;
@@ -702,6 +730,6 @@ std::istream& operator >> (std::istream& in, BigNumber& num) {
 
         num._bits = bits;
     }
-    
+
     return in;
 }
